@@ -17,7 +17,7 @@ pub enum LossFunction {
     MeanSquaredError,
 }
 
-pub struct  ParameterSet {
+pub struct ParameterSet {
     dataset: Rc<RefCell<DataSet>>,
     classes: Rc<RefCell<DataSet>>,
     loss: LossFunction,
