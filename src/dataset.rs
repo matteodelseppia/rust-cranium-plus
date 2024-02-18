@@ -1,7 +1,6 @@
 use rand::seq::SliceRandom;
 use rand::Rng;
 use crate::prelude::*;
-//use crate::matrix::*;
 
 #[derive(Debug)]
 pub struct DataSet {
@@ -12,6 +11,7 @@ pub struct DataSet {
 
 #[derive(Debug)]
 pub struct Batch<'a> {
+    pub offset: usize,
     pub size: usize,
     pub dataset: &'a DataSet,
 }
@@ -29,7 +29,7 @@ pub fn create_dataset(rows: usize, cols: usize, data: Vec<Vec<f32>>) -> DataSet 
 pub fn create_batches(dataset: &DataSet, num_batches: usize) -> Vec<Batch> {
     let rows = dataset.rows;
     let mut remainder = rows % num_batches;
-    let mut current_row = 0;
+    let mut offset = 0;
     let mut batches: Vec<Batch> = Vec::new();
 
     for _ in 0..num_batches {
@@ -38,8 +38,8 @@ pub fn create_batches(dataset: &DataSet, num_batches: usize) -> Vec<Batch> {
             size += 1;
         }
 
-        batches.push(Batch{size, dataset});
-        current_row += size;
+        batches.push(Batch{offset, size, dataset});
+        offset += size;
     
         if remainder > 0 {
             remainder -= 1;
