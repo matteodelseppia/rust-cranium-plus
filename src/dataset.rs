@@ -7,7 +7,7 @@ use crate::prelude::*;
 pub struct DataSet {
     pub rows: usize,
     pub cols: usize,
-    pub data: Rc<RefCell<Vec<Vec<f32>>>>,
+    pub data: Vec<Vec<f32>>,
 }
 
 #[derive(Debug)]
@@ -22,7 +22,7 @@ pub struct Row<'a> {
     pub batch: &'a Batch<'a>,
 }
 
-pub fn create_dataset(rows: usize, cols: usize, data: Rc<RefCell<Vec<Vec<f32>>>>) -> DataSet {
+pub fn create_dataset(rows: usize, cols: usize, data: Vec<Vec<f32>>) -> DataSet {
     DataSet {rows, cols, data}
 }
 
@@ -59,7 +59,7 @@ pub fn split_rows<'a>(batch: &'a Batch<'a>) -> Vec<Row<'a>> {
     rows
 }
 
-pub fn shuffle_together(data_a: &DataSet, data_b: &DataSet) {
+pub fn shuffle_together(data_a: &mut DataSet, data_b: &mut DataSet) {
     assert!(data_a.rows == data_b.rows);
     let mut rng = rand::thread_rng();
     let mut permutation: Vec<usize> = (0..data_a.rows).collect();
@@ -67,7 +67,7 @@ pub fn shuffle_together(data_a: &DataSet, data_b: &DataSet) {
     
     for i in 0..data_a.rows {
         let j = permutation[i];
-        data_a.data.borrow_mut().swap(i, j);
-        data_b.data.borrow_mut().swap(i, j);
+        data_a.data.swap(i, j);
+        data_b.data.swap(i, j);
     }
 }

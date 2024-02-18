@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod tests {
+mod dataset_tests {
     use std::{cell::RefCell, rc::Rc};
 
     use cranium_rs::dataset::*;
