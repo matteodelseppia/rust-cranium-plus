@@ -2,7 +2,7 @@ use rand::Rng;
 use crate::matrix::*;
 use crate::prelude::*;
 
-pub type Activation = fn(&mut Matrix);
+pub type Activation = fn(Rc<RefCell<Matrix>>);
 
 pub fn sigmoid_func(input: f32) -> f32 {
     1.0 / (1.0 + (-1.0 * input).exp())
@@ -20,8 +20,8 @@ pub fn relu_deriv(relu_input: f32) -> f32 {
     if relu_input > 0.0 { 1.0 } else { 0.0 }
 }
 
-pub fn sigmoid(input: &mut Matrix) {
-    input.transform(|x| sigmoid_func(x));
+pub fn sigmoid(input: Rc<RefCell<Matrix>>) {
+    input.borrow_mut().transform(|x| sigmoid_func(x));
 }
 
 pub fn tanh_func(input: f32) -> f32 {
@@ -32,27 +32,29 @@ pub fn tanh_deriv(tanh_input: f32) -> f32 {
     1.0 - (tanh_input * tanh_input)
 }
 
-pub fn relu(input: &mut Matrix) {
-    input.transform(|x| relu_func(x));
+pub fn relu(input: Rc<RefCell<Matrix>>) {
+    input.borrow_mut().transform(|x| relu_func(x));
 }
 
-pub fn tanh(input: &mut Matrix) {
-    input.transform(|x| tanh_func(x));
+pub fn tanh(input: Rc<RefCell<Matrix>>) {
+    input.borrow_mut().transform(|x| tanh_func(x));
 }
 
-pub fn softmax(input: &mut Matrix) {
-    for i in 0..input.rows() {
+pub fn softmax(input: Rc<RefCell<Matrix>>) {
+    let mut matrix = input.borrow_mut();
+    for i in 0..matrix.rows {
         let mut summed = 0.0;
-        for j in 0..input.cols() {
-            summed += input.get(i, j).exp();
+        for j in 0..matrix.cols {
+            summed += matrix.get(i, j).exp();
         }
-        for j in 0..input.cols() {
-            input.set(i, j, input.get(i, j).exp() / summed);
+        for j in 0..matrix.cols {
+            let val = matrix.get(i, j).exp() / summed;
+            matrix.set(i, j, val);
         }
     }
 }
 
-pub fn linear(input: &mut Matrix) {}
+pub fn linear(input: Rc<RefCell<Matrix>>) {}
 
 pub fn linear_deriv(_linear_input: f32) -> f32 {
     1.0
@@ -86,13 +88,13 @@ pub fn box_muller(x: f32) -> f32 {
     }
 }
 
-pub fn get_function_name(func: Activation) -> &'static str {
+pub fn get_function_name(func: Activation) -> String {
     match func {
-        sigmoid => "sigmoid",
-        relu => "relu",
-        tanh => "tanh",
-        softmax => "softmax",
-        _ => "linear",
+        sigmoid => "sigmoid".to_string(),
+        relu => "relu".to_string(),
+        tanh => "tanh".to_string(),
+        softmax => "softmax".to_string(),
+        _ => "linear".to_string(),
     }
 }
 
