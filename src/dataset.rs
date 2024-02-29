@@ -2,21 +2,21 @@ use rand::seq::SliceRandom;
 use rand::Rng;
 use crate::prelude::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct DataSet {
     pub rows: usize,
     pub cols: usize,
     pub data: Vec<Vec<f32>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Batch<'a> {
     pub offset: usize,
     pub size: usize,
     pub dataset: &'a DataSet,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Row<'a> {
     pub row_idx: usize,
     pub batch: &'a Batch<'a>,
