@@ -39,27 +39,21 @@ impl Matrix {
     }
 
     pub fn copy(&self) -> Matrix {
-        let mut data = vec![vec![0.0 as f32; self.cols]; self.rows];
-        for (idx, row) in data.iter_mut().enumerate() {
-            row.copy_from_slice(&self.data[idx]);
-        }
-
-        Matrix {rows: self.rows, cols: self.cols, data}
+        self.clone()
     }
 
+    // TODO: invertire l'oggetto implicito è to e quello passato è from
     pub fn copy_into(&self, to: &mut Matrix) {
         assert!(self.rows == to.rows && self.cols == to.cols);
-        for (idx, row) in to.data.iter_mut().enumerate() {
-            row.copy_from_slice(&self.data[idx]);
-        }
+        to.data = self.data.clone()
+        
     }
 
     pub fn transpose(&self) -> Matrix {
-        let data: Vec<f32> = vec![0.0; self.cols*self.rows];
         let mut result: Matrix = Matrix::create_zero_matrix(self.cols, self.rows);
         for i in 0..self.rows {
             for j in 0..self.cols {
-                result.set( i, j, self.get( i, j));
+                result.set(j, i, self.get(i, j));
             }
         }
     
@@ -68,18 +62,22 @@ impl Matrix {
 
     pub fn transpose_into(&self, into: &mut Matrix) {
         assert!(self.rows == into.cols && self.cols == into.rows);
-        for i in 0..self.rows {
+        let transposed_matrix = self.transpose();
+        into.rows = transposed_matrix.rows;
+        into.cols = transposed_matrix.cols;
+        into.data = transposed_matrix.data;
+        /*for i in 0..self.rows {
             for j in 0..self.cols {
                 into.set(j, i, self.get(i, j));
             }
-        }
+        }*/
     }
 
     pub fn add(&self, other: &Matrix) -> Matrix {
         assert!(self.rows == other.rows && self.cols == other.cols);
-        let mut result: Matrix = Matrix::create_zero_matrix(self.cols, self.rows);
+        let mut result: Matrix = Matrix::create_zero_matrix(self.rows, self.cols);
         for i in 0..self.rows {
-            for j in 0..self.rows {
+            for j in 0..self.cols {
                 let val = self.get(i, j) + other.get(i, j);
                 result.set(i, j, val);
             }
@@ -100,8 +98,7 @@ impl Matrix {
 
     pub fn add_to_each_row(&self, other: &Matrix) -> Matrix {
         assert!(self.cols == other.cols && other.rows == 1);
-        let data: Rc<RefCell<Vec<f32>>> = Rc::new(RefCell::new(vec![0.0; self.cols*self.rows]));
-        let mut result: Matrix = Matrix::create_zero_matrix(self.cols, self.rows);
+        let mut result: Matrix = Matrix::create_zero_matrix(self.rows, self.cols);
         for i in 0..self.rows {
             for j in 0..self.cols {
                 let val = self.get(i, j) + other.get(0, j);
@@ -123,7 +120,6 @@ impl Matrix {
 
     pub fn multiply(&self, other: &Matrix) -> Matrix {
         assert!(self.cols == other.rows);
-        let data: Rc<RefCell<Vec<f32>>> = Rc::new(RefCell::new(vec![0.0; other.cols*self.rows]));
         let mut result: Matrix = Matrix::create_zero_matrix(self.rows, other.cols);
     
         result.to_zero();
@@ -152,7 +148,7 @@ impl Matrix {
             for j in 0..other.cols {
                 let mut sum:f32 = 0.0;
                 for k in 0..other.rows {
-                    sum += self.get(i, j) * other.get(k, j);
+                    sum += self.get(i, k) * other.get(k, j);
                 }
 
                 into.set(i, j, sum);
@@ -162,8 +158,7 @@ impl Matrix {
 
     pub fn hadamard(&self, other: &Matrix) -> Matrix {
         assert!(self.rows == other.rows && self.cols == other.cols);
-        let data: Vec<f32> = vec![0.0; self.cols*self.rows];
-        let mut result: Matrix = Matrix::create_zero_matrix(self.cols, self.rows);
+        let mut result: Matrix = Matrix::create_zero_matrix(self.rows, self.cols);
         for i in 0..self.rows {
             for j in 0..self.cols {
                 let val = self.get(i, j) * other.get(i, j);
