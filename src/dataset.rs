@@ -61,8 +61,12 @@ pub fn split_rows<'a>(batch: &'a Batch<'a>) -> Vec<Row<'a>> {
 
 pub fn shuffle_together(data_a: &mut DataSet, data_b: &mut DataSet) {
     assert!(data_a.rows == data_b.rows);
+
     let mut rng = rand::thread_rng();
-    let mut permutation: Vec<usize> = (0..data_a.rows).collect();
+    let mut permutation: Vec<usize> = vec![0; data_a.rows];
+    for i in 0..data_a.rows {
+        permutation[i] = rng.gen_range(0..=data_a.rows);
+    }
     permutation.shuffle(&mut rng);
     
     for i in 0..data_a.rows {
