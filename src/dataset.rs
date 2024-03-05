@@ -65,7 +65,7 @@ pub fn shuffle_together(data_a: &mut DataSet, data_b: &mut DataSet) {
     let mut rng = rand::thread_rng();
     let mut permutation: Vec<usize> = vec![0; data_a.rows];
     for i in 0..data_a.rows {
-        permutation[i] = rng.gen_range(0..=data_a.rows);
+        permutation[i] = rng.gen_range(0..=data_a.rows-1);
     }
     permutation.shuffle(&mut rng);
     
