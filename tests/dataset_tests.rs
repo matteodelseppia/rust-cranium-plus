@@ -1,26 +1,24 @@
 #[cfg(test)]
 mod dataset_tests {
-    use std::{cell::RefCell, rc::Rc};
-
     use cranium_rs::dataset::*;
 
     #[test]
     fn test_create_dataset() {
         let rows = 3;
         let cols = 2;
-        let data = Rc::new(RefCell::new(vec![vec![1.0, 2.0], vec![3.0, 4.0], vec![5.0, 6.0]]));
+        let data = vec![vec![1.0, 2.0], vec![3.0, 4.0], vec![5.0, 6.0]];
         let dataset = create_dataset(rows, cols, data.clone());
         
         assert_eq!(dataset.rows, rows);
         assert_eq!(dataset.cols, cols);
-        assert_eq!(*dataset.data.borrow(), *data.borrow());
+        assert_eq!(*dataset.data, data);
     }
 
     #[test]
     fn test_create_batches() {
         let rows = 10;
         let cols = 2;
-        let data = Rc::new(RefCell::new(vec![vec![0.0; cols]; rows]));
+        let data = vec![vec![0.0; cols]; rows];
         let dataset = create_dataset(rows, cols, data.clone());
 
         let num_batches = 3;
@@ -34,9 +32,9 @@ mod dataset_tests {
     fn test_split_rows() {
         let rows = 5;
         let cols = 2;
-        let data = Rc::new(RefCell::new(vec![vec![0.0; cols]; rows]));
+        let data = vec![vec![0.0; cols]; rows];
         let dataset = create_dataset(rows, cols, data.clone());
-        let batch = Batch { size: rows, dataset: &dataset };
+        let batch = Batch { size: rows, offset:0, dataset: &dataset };
 
         let split = split_rows(&batch);
         assert_eq!(split.len(), rows);
@@ -44,21 +42,38 @@ mod dataset_tests {
 
     #[test]
     fn test_shuffle_together() {
-        let rows = 5;
+        let rows = 3;
         let cols = 2;
-        let data_a = Rc::new(RefCell::new(vec![vec![0.0; cols]; rows]));
-        let data_b = Rc::new(RefCell::new(vec![vec![1.0; cols]; rows]));
+        let data_a = vec![vec![0.0, 3.0], vec![1.0, 4.0], vec![2.0, 5.0]];
+        let data_b = vec![vec![6.0, 7.0], vec![8.0, 9.0], vec![10.0, 11.0]];
 
-        let original_a = data_a.clone();
-        let original_b = data_b.clone();
+        let mut dataset_a = create_dataset(rows, cols, data_a.clone());
+        let mut dataset_b = create_dataset(rows, cols, data_b.clone());
 
-        let dataset_a = create_dataset(rows, cols, data_a.clone());
-        let dataset_b = create_dataset(rows, cols, data_b.clone());
+        shuffle_together(&mut dataset_a, &mut dataset_b);
 
-        shuffle_together(&dataset_a, &dataset_b);
+        assert_ne!(dataset_a.data, data_a);
+        assert_ne!(dataset_b.data, data_b);
 
         // Check if the elements in both datasets are shuffled in the same way
-        assert_ne!(*data_a.borrow(), *original_a.borrow());
-        assert_ne!(*data_b.borrow(), *original_b.borrow());
+        let shuffled_data_b = dataset_b.data.clone();
+        let shuffled_data_a = dataset_a.data.clone();
+
+        let mut permutation: Vec<usize> = vec![0;rows];
+        for i in 0..rows {
+            permutation[i] = shuffled_data_a[i][0] as usize;
+        }
+
+        let mut reconstruction = vec![vec![0.0; cols]; rows];
+        for z in 0..rows {
+            for i in 0..rows {
+                if permutation[i] == z{
+                    reconstruction[z][0] = shuffled_data_b[i][0];
+                    reconstruction[z][1] = shuffled_data_b[i][1];
+                    break;
+                }
+            }
+        }
+        assert_eq!(reconstruction, data_b);
     }
 }
